@@ -332,7 +332,8 @@ static bool input_hydrasdr_initialize(ModuleContext* context) {
     if (result == HYDRASDR_SUCCESS) {
         size_t name_len = strlen(info.board_name);
         char* safe_name = (char*)mem_arena_alloc(&app->pipeline.setup_arena, name_len + 1, false);
-        strcpy(safe_name, info.board_name);
+        memcpy(safe_name, info.board_name, name_len);
+        safe_name[name_len] = '\0';
         private_data->board_name = safe_name;
     } else {
         private_data->board_name = "Unknown HydraSDR";
@@ -347,7 +348,7 @@ static bool input_hydrasdr_initialize(ModuleContext* context) {
         goto cleanup;
     }
 
-    uint32_t* rates = (uint32_t*)malloc(num_rates * sizeof(uint32_t));
+    uint32_t* rates = (uint32_t*)calloc(num_rates, sizeof(uint32_t));
     if (!rates) {
         goto cleanup;
     }
@@ -457,7 +458,7 @@ static void* input_hydrasdr_push_samples_to_queue(ModuleContext* context, QueueS
 
     uint32_t sr_count = 0;
     hydrasdr_get_samplerates(private_data->dev, &sr_count, 0);
-    uint32_t* samplerates = (uint32_t*)malloc(sr_count * sizeof(uint32_t));
+    uint32_t* samplerates = (uint32_t*)calloc(sr_count, sizeof(uint32_t));
     if (samplerates) {
         hydrasdr_get_samplerates(private_data->dev, samplerates, sr_count);
         free(samplerates);
